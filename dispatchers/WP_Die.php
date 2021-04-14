@@ -54,12 +54,6 @@ class QM_Dispatcher_WP_Die extends QM_Dispatcher {
 
 		$component = QM_Backtrace::get_frame_component( $culprit );
 
-		printf(
-			// phpcs:ignore WordPress.WP.EnqueuedResources.NonEnqueuedStylesheet
-			'<link rel="stylesheet" href="%s" media="all" />',
-			esc_url( includes_url( 'css/dashicons.css' ) )
-		);
-
 		?>
 		<style>
 			#query-monitor {
@@ -101,7 +95,7 @@ class QM_Dispatcher_WP_Die extends QM_Dispatcher {
 				color: #666;
 			}
 
-			#query-monitor .dashicons-info {
+			#query-monitor .dashicons-info { /* @TODO */
 				color: #0071a1;
 				vertical-align: bottom;
 				margin-right: 5px;
@@ -113,7 +107,7 @@ class QM_Dispatcher_WP_Die extends QM_Dispatcher {
 		echo '<div id="query-monitor">';
 
 		echo '<p>';
-		echo '<span class="dashicons dashicons-info" aria-hidden="true"></span>';
+		echo QueryMonitor::init()->icon( 'info' );
 
 		if ( $component ) {
 			$name = ( 'plugin' === $component->type ) ? $component->context : $component->name;
