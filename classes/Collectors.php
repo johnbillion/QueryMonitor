@@ -8,6 +8,7 @@
 if ( ! class_exists( 'QM_Collectors' ) ) {
 class QM_Collectors implements IteratorAggregate {
 
+	/** @var QM_Collector[] */
 	private $items     = array();
 	private $processed = false;
 
@@ -70,5 +71,14 @@ class QM_Collectors implements IteratorAggregate {
 		$this->processed = true;
 	}
 
+	public static function cease() {
+		$collectors = self::init();
+
+		/** @var QM_Collector $collector */
+		foreach ( $collectors as $collector ) {
+			$collector->tear_down();
+			$collector->discard_data();
+		}
+	}
 }
 }

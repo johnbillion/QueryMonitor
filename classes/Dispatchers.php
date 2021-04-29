@@ -7,6 +7,7 @@
 
 class QM_Dispatchers implements IteratorAggregate {
 
+	/** @var QM_Dispatcher[] */
 	private $items = array();
 
 	public function getIterator() {
@@ -24,6 +25,15 @@ class QM_Dispatchers implements IteratorAggregate {
 			return $dispatchers->items[ $id ];
 		}
 		return false;
+	}
+
+	public static function cease() {
+		$dispatchers = self::init();
+
+		/** @var QM_Dispatcher $dispatcher */
+		foreach ( $dispatchers as $dispatcher ) {
+			$dispatcher->cease();
+		}
 	}
 
 	public static function init() {
