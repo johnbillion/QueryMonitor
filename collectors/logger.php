@@ -77,6 +77,7 @@ class QM_Collector_Logger extends QM_Collector {
 		$trace = new QM_Backtrace( array(
 			'ignore_frames' => 2,
 		) );
+		$filtered_trace = $trace->get_display_trace();
 
 		if ( is_wp_error( $message ) ) {
 			$type    = 'wp_error';
@@ -112,6 +113,8 @@ class QM_Collector_Logger extends QM_Collector {
 			'message' => self::interpolate( $message, $context ),
 			'context' => $context,
 			'trace'   => $trace,
+			'component' => $trace->get_component(),
+			'filtered_trace' => $filtered_trace,
 			'level'   => $level,
 			'type'    => $type,
 		);
@@ -147,6 +150,8 @@ class QM_Collector_Logger extends QM_Collector {
 		}
 
 		$this->data['components'] = $components;
+		$this->data['levels'] = $this->get_levels();
+		$this->data['warning_levels'] = $this->get_warning_levels();
 	}
 
 	public function get_levels() {

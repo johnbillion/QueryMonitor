@@ -1,11 +1,11 @@
 # Query Monitor
 Contributors: johnbillion
 Tags: debug, debug-bar, debugging, development, developer, performance, profiler, queries, query monitor, rest-api
-Requires at least: 3.7
+Requires at least: 5.0
 Tested up to: 5.7
 Stable tag: 3.7.1
 License: GPLv2 or later
-Requires PHP: 5.3
+Requires PHP: 7.0
 Donate link: https://johnblackbourn.com/donations/
 
 Query Monitor is the developer tools panel for WordPress.

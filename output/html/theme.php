@@ -16,6 +16,8 @@ class QM_Output_Html_Theme extends QM_Output_Html {
 	 */
 	protected $collector;
 
+	public static $client_side_rendered = true;
+
 	public function __construct( QM_Collector $collector ) {
 		parent::__construct( $collector );
 		add_filter( 'qm/output/menus', array( $this, 'admin_menu' ), 60 );
@@ -139,7 +141,7 @@ class QM_Output_Html_Theme extends QM_Output_Html {
 				}
 
 				echo '</ul>';
-			} elseif ( $data['has_template_part_action'] ) {
+			} else {
 				echo '<p><em>' . esc_html__( 'None', 'query-monitor' ) . '</em></p>';
 			}
 		}
@@ -187,11 +189,11 @@ class QM_Output_Html_Theme extends QM_Output_Html {
 		}
 
 		$menu[ $this->collector->id() ] = $this->menu( array(
-			'title' => esc_html( sprintf(
+			'title' => sprintf(
 				/* translators: %s: Template file name */
 				__( 'Template: %s', 'query-monitor' ),
 				$name
-			) ),
+			),
 		) );
 
 		return $menu;

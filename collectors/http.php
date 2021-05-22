@@ -256,6 +256,9 @@ class QM_Collector_HTTP extends QM_Collector {
 				if ( $http['type'] >= 400 ) {
 					$this->data['errors']['warning'][] = $key;
 				}
+
+				// The response body can be huge, so kill it:
+				unset( $http['response']['body'] );
 			}
 
 			$http['ltime'] = ( $http['end'] - $http['start'] );
@@ -271,6 +274,7 @@ class QM_Collector_HTTP extends QM_Collector {
 			$this->data['ltime'] += $http['ltime'];
 
 			$http['component'] = $http['trace']->get_component();
+			$http['filtered_trace'] = $http['trace']->get_display_trace();
 
 			$host = (string) parse_url( $http['url'], PHP_URL_HOST );
 

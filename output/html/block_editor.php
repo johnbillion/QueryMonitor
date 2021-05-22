@@ -16,6 +16,8 @@ class QM_Output_Html_Block_Editor extends QM_Output_Html {
 	 */
 	protected $collector;
 
+	public static $client_side_rendered = true;
+
 	public function __construct( QM_Collector $collector ) {
 		parent::__construct( $collector );
 		add_filter( 'qm/output/menus', array( $this, 'admin_menu' ), 55 );
@@ -292,7 +294,7 @@ class QM_Output_Html_Block_Editor extends QM_Output_Html {
 		}
 
 		$menu[ $this->collector->id() ] = $this->menu( array(
-			'title' => esc_html__( 'Blocks', 'query-monitor' ),
+			'title' => __( 'Blocks', 'query-monitor' ),
 		) );
 
 		return $menu;

@@ -121,41 +121,18 @@ class QM_Collector_Request extends QM_Collector {
 		$user = wp_get_current_user();
 
 		if ( $user->exists() ) {
-			$user_title = sprintf(
-				/* translators: %d: User ID */
-				__( 'Current User: #%d', 'query-monitor' ),
-				$user->ID
-			);
-		} else {
-			/* translators: No user */
-			$user_title = _x( 'None', 'user', 'query-monitor' );
+			$this->data['user'] = $user;
 		}
 
-		$this->data['user'] = array(
-			'title' => $user_title,
-			'data'  => ( $user->exists() ? $user : false ),
-		);
-
 		if ( is_multisite() ) {
-			$this->data['multisite']['current_site'] = array(
-				'title' => sprintf(
-					/* translators: %d: Multisite site ID */
-					__( 'Current Site: #%d', 'query-monitor' ),
-					$current_blog->blog_id
-				),
-				'data'  => $current_blog,
-			);
+			$this->data['multisite']['current_site'] = $current_blog;
 		}
 
 		if ( QM_Util::is_multi_network() ) {
-			$this->data['multisite']['current_network'] = array(
-				'title' => sprintf(
-					/* translators: %d: Multisite network ID */
-					__( 'Current Network: #%d', 'query-monitor' ),
-					$current_site->id
-				),
-				'data'  => $current_site,
-			);
+			// `WP_Network::$id` is a private property so we need to expose it here:
+			$network = get_object_vars( $current_site );
+			$network['id'] = $current_site->id;
+			$this->data['multisite']['current_network'] = $network;
 		}
 
 		if ( is_admin() ) {
@@ -167,8 +144,8 @@ class QM_Collector_Request extends QM_Collector {
 			} else {
 				$this->data['request']['request'] = '';
 			}
-			foreach ( array( 'query_string' ) as $item ) {
-				$this->data['request'][ $item ] = $wp->$item;
+			if ( $wp->query_string ) {
+				$this->data['request']['query_string'] = $wp->query_string;
 			}
 		} else {
 			foreach ( array( 'request', 'matched_rule', 'matched_query', 'query_string' ) as $item ) {
@@ -264,6 +241,7 @@ class QM_Collector_Request extends QM_Collector {
 
 		if ( $qo ) {
 			$this->data['queried_object']['data'] = $qo;
+			$this->data['queried_object']['type'] = get_class( $qo );
 		}
 
 		if ( isset( $_SERVER['REQUEST_METHOD'] ) ) {

@@ -16,6 +16,8 @@ class QM_Output_Html_DB_Queries extends QM_Output_Html {
 	 */
 	protected $collector;
 
+	public static $client_side_rendered = true;
+
 	public $query_row = 0;
 
 	public function __construct( QM_Collector $collector ) {
@@ -469,27 +471,27 @@ class QM_Output_Html_DB_Queries extends QM_Output_Html {
 		if ( isset( $data['dbs'] ) ) {
 			foreach ( $data['dbs'] as $key => $db ) {
 				/* translators: %s: Database query time in seconds */
-				$text = _nx( '%s S', '%s S', $db->total_time, 'Query time', 'query-monitor' );
+				$text = _nx( '%s S', '%s S', $db->total_time, 'Query time', 'query-monitor' ); // @TODO
 
 				// Avoid a potentially blank translation for the plural form.
 				// @see https://meta.trac.wordpress.org/ticket/5377
 				if ( '' === $text ) {
-					$text = '%s S';
+					$text = '%s S'; // @TODO
 				}
 
 				$title[] = sprintf(
 					esc_html( '%s' . $text ),
-					( count( $data['dbs'] ) > 1 ? '&bull;&nbsp;&nbsp;&nbsp;' : '' ),
+					( count( $data['dbs'] ) > 1 ? '&bull;&nbsp;&nbsp;&nbsp;' : '' ), // @TODO
 					number_format_i18n( $db->total_time, 4 )
 				);
 
 				/* translators: %s: Number of database queries */
-				$text = _nx( '%s Q', '%s Q', $db->total_qs, 'Query count', 'query-monitor' );
+				$text = _nx( '%s Q', '%s Q', $db->total_qs, 'Query count', 'query-monitor' ); // @TODO
 
 				// Avoid a potentially blank translation for the plural form.
 				// @see https://meta.trac.wordpress.org/ticket/5377
 				if ( '' === $text ) {
-					$text = '%s Q';
+					$text = '%s Q'; // @TODO
 				}
 
 				$title[] = sprintf(
@@ -499,12 +501,12 @@ class QM_Output_Html_DB_Queries extends QM_Output_Html {
 			}
 		} elseif ( isset( $data['total_qs'] ) ) {
 			/* translators: %s: Number of database queries */
-			$text = _nx( '%s Q', '%s Q', $data['total_qs'], 'Query count', 'query-monitor' );
+			$text = _nx( '%s Q', '%s Q', $data['total_qs'], 'Query count', 'query-monitor' ); // @TODO
 
 			// Avoid a potentially blank translation for the plural form.
 			// @see https://meta.trac.wordpress.org/ticket/5377
 			if ( '' === $text ) {
-				$text = '%s Q';
+				$text = '%s Q'; // @TODO
 			}
 
 			$title[] = sprintf(
@@ -512,10 +514,6 @@ class QM_Output_Html_DB_Queries extends QM_Output_Html {
 				esc_html( $text ),
 				number_format_i18n( $data['total_qs'] )
 			);
-		}
-
-		foreach ( $title as &$t ) {
-			$t = preg_replace( '#\s?([^0-9,\.]+)#', '<small>$1</small>', $t );
 		}
 
 		$title = array_merge( $existing, $title );
@@ -546,20 +544,22 @@ class QM_Output_Html_DB_Queries extends QM_Output_Html {
 				$name_attr   = sanitize_title_with_dashes( $name );
 				$id          = $this->collector->id() . '-' . $name_attr;
 				$menu[ $id ] = $this->menu( array(
-					'id'    => esc_attr( sprintf( 'query-monitor-%s-db-%s', $this->collector->id(), $name_attr ) ),
-					'title' => esc_html( sprintf(
+					'id'    => sprintf( // @TODO
+						'%s-db-%s',
+						$this->collector->id(),
+						$name_attr
+					),
+					'title' => sprintf(
 						/* translators: %s: Name of database controller */
 						__( 'Queries: %s', 'query-monitor' ),
 						$name
-					) ),
-					'href'  => esc_attr( sprintf( '#%s-%s', $this->collector->id(), $name_attr ) ),
+					),
 				) );
 			}
 		} else {
 			$id          = $this->collector->id() . '-$wpdb';
 			$menu[ $id ] = $this->menu( array(
-				'title' => esc_html__( 'Queries', 'query-monitor' ),
-				'href'  => esc_attr( sprintf( '#%s-wpdb', $this->collector->id() ) ),
+				'title' => __( 'Queries', 'query-monitor' ),
 			) );
 		}
 
@@ -568,7 +568,6 @@ class QM_Output_Html_DB_Queries extends QM_Output_Html {
 			$count       = count( $errors );
 			$menu[ $id ] = $this->menu( array(
 				'id'    => 'query-monitor-errors',
-				'href'  => '#qm-query-errors',
 				'title' => esc_html( sprintf(
 					/* translators: %s: Number of database errors */
 					__( 'Database Errors (%s)', 'query-monitor' ),
@@ -582,7 +581,6 @@ class QM_Output_Html_DB_Queries extends QM_Output_Html {
 			$count       = count( $expensive );
 			$menu[ $id ] = $this->menu( array(
 				'id'    => 'query-monitor-expensive',
-				'href'  => '#qm-query-expensive',
 				'title' => esc_html( sprintf(
 					/* translators: %s: Number of slow database queries */
 					__( 'Slow Queries (%s)', 'query-monitor' ),
@@ -601,7 +599,7 @@ class QM_Output_Html_DB_Queries extends QM_Output_Html {
 			if ( isset( $menu[ $id ] ) ) {
 				$menu[ $id ]['title'] = $menu[ $id ]['title'];
 
-				$menu['qm-db_queries-$wpdb']['children'][] = $menu[ $id ];
+				$menu['db_queries-$wpdb']['children'][] = $menu[ $id ];
 				unset( $menu[ $id ] );
 			}
 		}

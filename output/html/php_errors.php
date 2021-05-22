@@ -16,6 +16,8 @@ class QM_Output_Html_PHP_Errors extends QM_Output_Html {
 	 */
 	protected $collector;
 
+	public static $client_side_rendered = true;
+
 	public function __construct( QM_Collector $collector ) {
 		parent::__construct( $collector );
 		add_filter( 'qm/output/menus', array( $this, 'admin_menu' ), 10 );
@@ -256,7 +258,7 @@ class QM_Output_Html_PHP_Errors extends QM_Output_Html {
 		}
 
 		$menu[ $this->collector->id() ] = $this->menu( array(
-			'id'    => "query-monitor-{$key}s",
+			'id'    => "query-monitor-{$key}s", // @TODO
 			'title' => $title,
 		) );
 		return $menu;
