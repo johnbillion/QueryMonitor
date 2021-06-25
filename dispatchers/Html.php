@@ -35,6 +35,7 @@ class QM_Dispatcher_Html extends QM_Dispatcher {
 		add_action( 'shutdown',                   array( $this, 'dispatch' ), 0 );
 
 		add_action( 'wp_footer',                  array( $this, 'action_footer' ) );
+		add_action( 'amp_post_template_footer',   array( $this, 'action_footer' ) );
 		add_action( 'admin_footer',               array( $this, 'action_footer' ) );
 		add_action( 'login_footer',               array( $this, 'action_footer' ) );
 		add_action( 'gp_footer',                  array( $this, 'action_footer' ) );
@@ -135,17 +136,23 @@ class QM_Dispatcher_Html extends QM_Dispatcher {
 			add_action( 'admin_notices', array( $this, 'build_warning' ) );
 		}
 
+		$this->filter_amp_dev_mode_element_xpaths();
 		add_action( 'wp_enqueue_scripts',    array( $this, 'enqueue_assets' ), -9999 );
 		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_assets' ), -9999 );
 		add_action( 'login_enqueue_scripts', array( $this, 'enqueue_assets' ), -9999 );
 		add_action( 'enqueue_embed_scripts', array( $this, 'enqueue_assets' ), -9999 );
 
 		add_action( 'gp_head',                array( $this, 'manually_print_assets' ), 11 );
+		add_action( 'amp_post_template_head', array( $this, 'manually_print_assets' ));
 
 		parent::init();
 	}
 
 	public function manually_print_assets() {
+		if ( ! wp_script_is( 'query-monitor', 'registered' ) || ! wp_style_is( 'query-monitor', 'registered' ) ) {
+			// Ensure the script and style are registered.
+			$this->enqueue_assets();
+		}
 		wp_print_scripts( array(
 			'query-monitor',
 		) );
@@ -219,6 +226,32 @@ class QM_Dispatcher_Html extends QM_Dispatcher {
 			)
 		);
 
+		if ( $this->is_amp_request() ) {
+			add_filter(
+				'style_loader_tag',
+				function ( $tag, $handle ) {
+					if ( in_array( $handle, array( 'query-monitor', 'dashicons' ), true ) ) {
+						$tag = preg_replace( '/(?<=<link\s)/', ' data-ampdevmode ', $tag );
+					}
+					return $tag;
+				},
+				10,
+				2
+			);
+
+			add_filter(
+				'script_loader_tag',
+				function ( $tag, $handle ) {
+					if ( in_array( $handle, array( 'query-monitor', 'jquery-core' ), true ) ) {
+						$tag = preg_replace( '/(?<=<script\s)/', ' data-ampdevmode ', $tag );
+					}
+					return $tag;
+				},
+				10,
+				2
+			);
+		}
+
 		/**
 		 * Fires when assets for QM's HTML have been enqueued.
 		 *
@@ -227,6 +260,34 @@ class QM_Dispatcher_Html extends QM_Dispatcher {
 		 * @param \QM_Dispatcher_Html $this The HTML dispatcher.
 		 */
 		do_action( 'qm/output/enqueued-assets', $this );
+	}
+
+	/**
+	 * Determine whether the request is for an AMP page.
+	 *
+	 * @return bool
+	 */
+	private function is_amp_request() {
+		return function_exists( 'is_amp_endpoint' ) && is_amp_endpoint();
+	}
+
+	/**
+	 * Add AMP Dev Mode attributes to scripts and styles to omit them from AMP processing.
+	 */
+	private function filter_amp_dev_mode_element_xpaths() {
+		add_filter(
+			'amp_dev_mode_element_xpaths',
+			function ( $expressions ) {
+				if ( version_compare( get_bloginfo( 'version' ), '5.5', '>=' ) ) {
+					$expressions[] = '//script[ @id = "query-monitor-js-extra" ]';
+				} else {
+					$expressions[] = '//script[ contains( text(), "var qm_number_format =" ) ]';
+				}
+				$expressions[] = '//script[ @id = "query-monitor-data" ]';
+				$expressions[] = '//script[ @id = "query-monitor-init" ]';
+				return $expressions;
+			}
+		);
 	}
 
 	public function dispatch() {
@@ -322,7 +383,7 @@ class QM_Dispatcher_Html extends QM_Dispatcher {
 		);
 
 		echo '<!-- Begin Query Monitor output -->' . "\n\n";
-		echo '<script type="text/javascript">' . "\n\n";
+		echo '<script id="query-monitor-data" type="text/javascript">' . "\n\n";
 		echo 'var qm = ' . json_encode( $json ) . ';' . "\n\n";
 		echo '</script>' . "\n\n";
 
@@ -575,7 +636,7 @@ class QM_Dispatcher_Html extends QM_Dispatcher {
 		echo '</div>'; // #qm-wrapper
 		echo '</div>'; // #query-monitor-main
 
-		echo '<script type="text/javascript">' . "\n\n";
+		echo '<script id="query-monitor-init" type="text/javascript">' . "\n\n";
 		?>
 		window.addEventListener('load', function() {
 			var main = document.getElementById( 'query-monitor-main' );
