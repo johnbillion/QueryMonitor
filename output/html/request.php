@@ -36,9 +36,114 @@ class QM_Output_Html_Request extends QM_Output_Html {
 
 		$this->before_non_tabular_output();
 
+		if ( $data['is_404'] ) {
+			echo '<section>';
+			echo '<h3>' . esc_html__( '404 Helper', 'query-monitor' ) . '</h3>';
+			echo '<table>';
+
+			if ( $data['missing_rewrite_rules'] ) {
+				$message = _x( 'Need flushing', 'Rewrite rules need flushing', 'query-monitor' );
+				$class   = 'qm-warn';
+			} else {
+				$message = __( 'OK', 'query-monitor' );
+				$class   = '';
+			}
+
+			echo '<tr class="' . esc_attr( $class ) . '">';
+			echo '<th>';
+
+			if ( ! empty( $data['missing_rewrite_rules'] ) ) {
+				echo '<span class="dashicons dashicons-warning" style="color:#dd3232" aria-hidden="true"></span>';
+			}
+
+			esc_html_e( 'Rewrite Rules', 'query-monitor' );
+			echo '</th>';
+			echo '<td>';
+			echo esc_html( $message );
+			echo '</td>';
+			echo '</tr>';
+
+			if ( ! empty( $data['set_404'] ) ) {
+				$filtered_trace = $data['set_404']->get_display_trace();
+
+				foreach ( $filtered_trace as $item ) {
+					$stack[] = self::output_filename( $item['display'], $item['calling_file'], $item['calling_line'] );
+				}
+
+				echo '<tr>';
+				echo '<th>';
+				esc_html_e( '404 Triggered by', 'query-monitor' );
+				echo '</th>';
+				echo '<td>';
+
+				echo '<ol>';
+				// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+				echo '<li>' . implode( '</li><li>', $stack ) . '</li>';
+				echo '</ol>';
+
+				echo '</td>';
+				echo '</tr>';
+			}
+
+			echo '</table>';
+			echo '</section>';
+
+			echo '</div>';
+
+			echo '<div class="qm-boxed qm-boxed-wrap">';
+		}
+
+		if ( ! empty( $raw_request ) ) {
+			$raw_data = $raw_request->get_data();
+			echo '<section>';
+			echo '<h3>' . esc_html__( 'Request Data', 'query-monitor' ) . '</h3>';
+			echo '<table>';
+
+			foreach ( array(
+				'ip'     => __( 'Remote IP', 'query-monitor' ),
+				'method' => __( 'HTTP method', 'query-monitor' ),
+				'url'    => __( 'Requested URL', 'query-monitor' ),
+			) as $item => $name ) {
+				echo '<tr>';
+				echo '<th scope="row">' . esc_html( $name ) . '</td>';
+				echo '<td class="qm-ltr qm-wrap">' . esc_html( $raw_data['request'][ $item ] ) . '</td>';
+				echo '</tr>';
+			}
+
+			echo '</table>';
+
+			echo '</section>';
+			echo '</div>';
+
+			echo '<div class="qm-boxed qm-boxed-wrap">';
+		}
+
+		if ( ! empty( $data['matching_rewrites'] ) ) {
+			echo '<section>';
+			echo '<h3>' . esc_html__( 'Matching Rewrite Rules', 'query-monitor' ) . '</h3>';
+			echo '<table>';
+
+			foreach ( $data['matching_rewrites'] as $rule => $query ) {
+				$query = str_replace( 'index.php?', '', $query );
+
+				echo '<tr>';
+				echo '<td class="qm-ltr"><code>' . esc_html( $rule ) . '</code></td>';
+				echo '<td class="qm-ltr"><code>';
+				echo self::format_url( $query ); // WPCS: XSS ok.
+				echo '</code></td>';
+				echo '</tr>';
+			}
+
+			echo '</table>';
+			echo '</section>';
+
+			echo '</div>';
+
+			echo '<div class="qm-boxed qm-boxed-wrap">';
+		}
+
 		foreach ( array(
 			'request'       => __( 'Request', 'query-monitor' ),
-			'matched_rule'  => __( 'Matched Rule', 'query-monitor' ),
 			'matched_query' => __( 'Matched Query', 'query-monitor' ),
 			'query_string'  => __( 'Query String', 'query-monitor' ),
 		) as $item => $name ) {
@@ -65,26 +170,6 @@ class QM_Output_Html_Request extends QM_Output_Html {
 		echo '</div>';
 
 		echo '<div class="qm-boxed qm-boxed-wrap">';
-
-		if ( ! empty( $data['matching_rewrites'] ) ) {
-			echo '<section>';
-			echo '<h3>' . esc_html__( 'All Matching Rewrite Rules', 'query-monitor' ) . '</h3>';
-			echo '<table>';
-
-			foreach ( $data['matching_rewrites'] as $rule => $query ) {
-				$query = str_replace( 'index.php?', '', $query );
-
-				echo '<tr>';
-				echo '<td class="qm-ltr"><code>' . esc_html( $rule ) . '</code></td>';
-				echo '<td class="qm-ltr"><code>';
-				echo self::format_url( $query ); // WPCS: XSS ok.
-				echo '</code></td>';
-				echo '</tr>';
-			}
-
-			echo '</table>';
-			echo '</section>';
-		}
 
 		echo '<section>';
 		echo '<h3>';
@@ -173,28 +258,6 @@ class QM_Output_Html_Request extends QM_Output_Html {
 		}
 
 		echo '</section>';
-
-		if ( ! empty( $raw_request ) ) {
-			$raw_data = $raw_request->get_data();
-			echo '<section>';
-			echo '<h3>' . esc_html__( 'Request Data', 'query-monitor' ) . '</h3>';
-			echo '<table>';
-
-			foreach ( array(
-				'ip'     => __( 'Remote IP', 'query-monitor' ),
-				'method' => __( 'HTTP method', 'query-monitor' ),
-				'url'    => __( 'Requested URL', 'query-monitor' ),
-			) as $item => $name ) {
-				echo '<tr>';
-				echo '<th scope="row">' . esc_html( $name ) . '</td>';
-				echo '<td class="qm-ltr qm-wrap">' . esc_html( $raw_data['request'][ $item ] ) . '</td>';
-				echo '</tr>';
-			}
-
-			echo '</table>';
-
-			echo '</section>';
-		}
 
 		$this->after_non_tabular_output();
 	}
